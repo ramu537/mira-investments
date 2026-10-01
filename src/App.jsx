@@ -6,6 +6,8 @@ import AppShell from "./components/AppShell";
 import DomainIntelligenceDialog from "./components/DomainIntelligenceDialog";
 import ConfirmDialog from "./components/ConfirmDialog";
 import HoldingForm from "./components/HoldingForm";
+import AiInvestmentCaptureModal from "./components/AiInvestmentCaptureModal";
+import AiMemorySearchDialog from "./components/AiMemorySearchDialog";
 import LoginScreen from "./components/LoginScreen";
 import { ErrorState, LoadingState } from "./components/PageState";
 import Toast from "./components/Toast";
@@ -68,7 +70,20 @@ export default function App() {
   const [pendingDelete, setPendingDelete] = useState(null);
   const [toast, setToast] = useState(null);
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
+  const [aiCaptureOpen, setAiCaptureOpen] = useState(false);
+  const [aiSearchOpen, setAiSearchOpen] = useState(false);
   const closeToast = useCallback(() => setToast(null), []);
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setAiSearchOpen((prev) => !prev);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   useEffect(() => {
     if (manager.loaded && manager.loadError) {
@@ -112,10 +127,33 @@ export default function App() {
   else content = <Routes><Route path="/" element={<OverviewPage holdings={manager.holdings} today={localDateKey()} onAdd={openAdd} onEdit={openEdit} />} /><Route path="/holdings" element={<HoldingsPage holdings={manager.holdings} today={localDateKey()} onAdd={openAdd} onEdit={openEdit} onDelete={setPendingDelete} />} /><Route path="*" element={<Navigate to="/" replace />} /></Routes>;
 
   return <>
-    <AppShell user={user} onSignOut={handleSignOut} loading={manager.loading} onAdd={() => openAdd("STOCK")} onRefresh={manager.actions.load} onOpenIntelligence={() => setIntelligenceOpen(true)}>{content}</AppShell>
+    <AppShell
+      user={user}
+      onSignOut={handleSignOut}
+      loading={manager.loading}
+      onAdd={() => openAdd("STOCK")}
+      onRefresh={manager.actions.load}
+      onOpenIntelligence={() => setIntelligenceOpen(true)}
+      onOpenAiCapture={() => setAiCaptureOpen(true)}
+      onOpenAiSearch={() => setAiSearchOpen(true)}
+    >
+      {content}
+    </AppShell>
     <DomainIntelligenceDialog open={intelligenceOpen} title="Investment intelligence" description="Review concentration, stale valuations and upcoming dates using only the values you entered—not live market data or trading advice." date={localDateKey()} load={investmentApi.analyze} refresh={investmentApi.refreshAnalysis} onClose={() => setIntelligenceOpen(false)} />
     <HoldingForm open={form.open} holding={form.holding} initialType={form.initialType} saving={manager.saving} onClose={closeForm} onSave={saveHolding} />
     <ConfirmDialog holding={pendingDelete} busy={manager.deleting} onCancel={() => setPendingDelete(null)} onConfirm={deleteHolding} />
+    <AiInvestmentCaptureModal
+      open={aiCaptureOpen}
+      onClose={() => setAiCaptureOpen(false)}
+      onSuccess={(msg) => {
+        manager.actions.load();
+        setToast({ tone: "success", message: msg || "Investment captured and processed by AI." });
+      }}
+    />
+    <AiMemorySearchDialog
+      open={aiSearchOpen}
+      onClose={() => setAiSearchOpen(false)}
+    />
     <Toast toast={toast} onClose={closeToast} />
   </>;
 }

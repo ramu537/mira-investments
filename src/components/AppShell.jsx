@@ -1,4 +1,4 @@
-import { BriefcaseBusiness, LayoutDashboard, ListFilter, LogOut, Plus, RefreshCw, ShieldCheck, Sparkles, User } from "lucide-react";
+import { BriefcaseBusiness, LayoutDashboard, ListFilter, LogOut, Plus, RefreshCw, Search, ShieldCheck, Sparkles, User } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const navigation = [
@@ -28,7 +28,7 @@ function Navigation({ mobile = false }) {
   );
 }
 
-export default function AppShell({ user, onSignOut, loading, onAdd, onRefresh, onOpenIntelligence, children }) {
+export default function AppShell({ user, onSignOut, loading, onAdd, onRefresh, onOpenIntelligence, onOpenAiCapture, onOpenAiSearch, children }) {
   return (
     <div className="app-frame">
       <aside className="sidebar">
@@ -72,7 +72,11 @@ export default function AppShell({ user, onSignOut, loading, onAdd, onRefresh, o
           <div className="topbar-context"><strong>Portfolio ledger</strong><span>Values reflect your latest entries</span></div>
 
           <div className="topbar-actions">
+            <button className="icon-button" type="button" onClick={onOpenAiSearch} aria-label="Search memory" title="AI Vector Memory Search (Ctrl+K)"><Search size={18} /></button>
             <button className="icon-button topbar-intelligence" type="button" onClick={onOpenIntelligence} aria-label="Open investment intelligence" title="Investment intelligence"><Sparkles size={18} /></button>
+            <button className="button button--ghost" type="button" onClick={onOpenAiCapture} aria-label="AI Trade Capture" title="Record trade with AI" style={{ gap: "0.375rem", display: "inline-flex", alignItems: "center" }}>
+              <BriefcaseBusiness size={16} /> <span>AI Trade</span>
+            </button>
             <button className="icon-button refresh-button" type="button" onClick={onRefresh} disabled={loading} aria-label="Refresh holdings"><RefreshCw size={18} /></button>
             <button className="button button--primary topbar-action" type="button" onClick={onAdd}><Plus size={18} /><span>Add holding</span></button>
 
@@ -101,6 +105,12 @@ export default function AppShell({ user, onSignOut, loading, onAdd, onRefresh, o
 
         <main className="main-content">{children}</main>
         <Navigation mobile />
+        <div style={{ position: "fixed", bottom: "1.25rem", right: "1.25rem", display: "flex", gap: "0.75rem", zIndex: 40 }} className="mobile-only-actions">
+          <button className="mobile-add" type="button" onClick={onOpenAiCapture} aria-label="AI Trade Capture" style={{ background: "var(--surface-raised, #ffffff)", color: "var(--accent-strong, #3b82f6)", border: "1px solid var(--border-default, #cbd5e1)" }}>
+            <BriefcaseBusiness size={22} strokeWidth={2.2} />
+          </button>
+          <button className="mobile-add" type="button" onClick={onAdd} aria-label="Add holding"><Plus size={24} /></button>
+        </div>
       </div>
     </div>
   );
