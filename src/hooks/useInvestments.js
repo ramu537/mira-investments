@@ -38,6 +38,17 @@ export function useInvestments(user = null) {
     return () => { requestSequence.current += 1; };
   }, [load, user]);
 
+  useEffect(() => {
+    if (!user) return undefined;
+    const sync = () => { if (document.visibilityState === "visible") void load(); };
+    window.addEventListener("focus", sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      window.removeEventListener("focus", sync);
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, [user, load]);
+
   const save = useCallback(async (holding, payload) => {
     setSaving(true);
     try {
@@ -65,4 +76,3 @@ export function useInvestments(user = null) {
 
   return { holdings, loading, loaded, loadError, saving, deleting, actions: { load, save, remove } };
 }
-

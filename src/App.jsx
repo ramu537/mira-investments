@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { configureAccessTokenProvider } from "./api/client";
 import AppShell from "./components/AppShell";
+import DomainIntelligenceDialog from "./components/DomainIntelligenceDialog";
 import ConfirmDialog from "./components/ConfirmDialog";
 import HoldingForm from "./components/HoldingForm";
 import LoginScreen from "./components/LoginScreen";
@@ -10,6 +11,7 @@ import { ErrorState, LoadingState } from "./components/PageState";
 import Toast from "./components/Toast";
 import { auth, googleProvider, signInWithPopup, signOut } from "./config/firebase";
 import { useInvestments } from "./hooks/useInvestments";
+import { investmentApi } from "./api/investments";
 import { localDateKey } from "./lib/dates";
 import HoldingsPage from "./pages/HoldingsPage";
 import OverviewPage from "./pages/OverviewPage";
@@ -65,6 +67,7 @@ export default function App() {
   const [form, setForm] = useState({ open: false, holding: null, initialType: "STOCK" });
   const [pendingDelete, setPendingDelete] = useState(null);
   const [toast, setToast] = useState(null);
+  const [intelligenceOpen, setIntelligenceOpen] = useState(false);
   const closeToast = useCallback(() => setToast(null), []);
 
   useEffect(() => {
@@ -109,7 +112,8 @@ export default function App() {
   else content = <Routes><Route path="/" element={<OverviewPage holdings={manager.holdings} today={localDateKey()} onAdd={openAdd} onEdit={openEdit} />} /><Route path="/holdings" element={<HoldingsPage holdings={manager.holdings} today={localDateKey()} onAdd={openAdd} onEdit={openEdit} onDelete={setPendingDelete} />} /><Route path="*" element={<Navigate to="/" replace />} /></Routes>;
 
   return <>
-    <AppShell user={user} onSignOut={handleSignOut} loading={manager.loading} onAdd={() => openAdd("STOCK")} onRefresh={manager.actions.load}>{content}</AppShell>
+    <AppShell user={user} onSignOut={handleSignOut} loading={manager.loading} onAdd={() => openAdd("STOCK")} onRefresh={manager.actions.load} onOpenIntelligence={() => setIntelligenceOpen(true)}>{content}</AppShell>
+    <DomainIntelligenceDialog open={intelligenceOpen} title="Investment intelligence" description="Review concentration, stale valuations and upcoming dates using only the values you entered—not live market data or trading advice." date={localDateKey()} load={investmentApi.analyze} refresh={investmentApi.refreshAnalysis} onClose={() => setIntelligenceOpen(false)} />
     <HoldingForm open={form.open} holding={form.holding} initialType={form.initialType} saving={manager.saving} onClose={closeForm} onSave={saveHolding} />
     <ConfirmDialog holding={pendingDelete} busy={manager.deleting} onCancel={() => setPendingDelete(null)} onConfirm={deleteHolding} />
     <Toast toast={toast} onClose={closeToast} />

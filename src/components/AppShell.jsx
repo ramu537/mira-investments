@@ -1,4 +1,4 @@
-import { BriefcaseBusiness, LayoutDashboard, ListFilter, LogOut, Plus, RefreshCw, ShieldCheck, User } from "lucide-react";
+import { BriefcaseBusiness, LayoutDashboard, ListFilter, LogOut, Plus, RefreshCw, ShieldCheck, Sparkles, User } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const navigation = [
@@ -28,7 +28,7 @@ function Navigation({ mobile = false }) {
   );
 }
 
-export default function AppShell({ user, onSignOut, loading, onAdd, onRefresh, children }) {
+export default function AppShell({ user, onSignOut, loading, onAdd, onRefresh, onOpenIntelligence, children }) {
   return (
     <div className="app-frame">
       <aside className="sidebar">
@@ -72,6 +72,7 @@ export default function AppShell({ user, onSignOut, loading, onAdd, onRefresh, c
           <div className="topbar-context"><strong>Portfolio ledger</strong><span>Values reflect your latest entries</span></div>
 
           <div className="topbar-actions">
+            <button className="icon-button topbar-intelligence" type="button" onClick={onOpenIntelligence} aria-label="Open investment intelligence" title="Investment intelligence"><Sparkles size={18} /></button>
             <button className="icon-button refresh-button" type="button" onClick={onRefresh} disabled={loading} aria-label="Refresh holdings"><RefreshCw size={18} /></button>
             <button className="button button--primary topbar-action" type="button" onClick={onAdd}><Plus size={18} /><span>Add holding</span></button>
 
