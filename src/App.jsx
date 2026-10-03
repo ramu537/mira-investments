@@ -146,7 +146,7 @@ export default function App() {
     >
       {content}
     </AppShell>
-    <DomainIntelligenceDialog revision={manager.holdings} open={intelligenceOpen} title="Investment intelligence" description="Review concentration, stale valuations and upcoming dates using only the values you entered—not live market data or trading advice." date={localDateKey()} load={investmentApi.analyze} refresh={investmentApi.refreshAnalysis} onClose={() => setIntelligenceOpen(false)} />
+    <DomainIntelligenceDialog domain="investments" userId={user.uid} revision={manager.holdings} open={intelligenceOpen} title="Investment intelligence" description="Review concentration, stale valuations and upcoming dates using only the values you entered—not live market data or trading advice." date={localDateKey()} load={investmentApi.analyze} refresh={investmentApi.refreshAnalysis} onClose={() => setIntelligenceOpen(false)} />
     <HoldingForm open={form.open} holding={form.holding} initialType={form.initialType} saving={manager.saving} onClose={closeForm} onSave={saveHolding} />
     <ConfirmDialog holding={pendingDelete} busy={manager.deleting} onCancel={() => setPendingDelete(null)} onConfirm={deleteHolding} />
     <AiInvestmentCaptureModal
