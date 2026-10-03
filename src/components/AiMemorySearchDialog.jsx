@@ -18,6 +18,7 @@ export default function AiMemorySearchDialog({ open, onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const inputRef = useRef(null);
+  const sequence = useRef(0);
 
   useEffect(() => {
     if (open) {
@@ -30,7 +31,9 @@ export default function AiMemorySearchDialog({ open, onClose }) {
   }, [open]);
 
   useEffect(() => {
-    if (!query.trim()) {
+    const request = ++sequence.current;
+    if (!open || !query.trim()) {
+      setLoading(false);
       setResults([]);
       return;
     }
@@ -39,16 +42,16 @@ export default function AiMemorySearchDialog({ open, onClose }) {
       setError("");
       try {
         const domains = selectedDomain === "ALL" ? undefined : [selectedDomain];
-        const res = await memoryApi.search({ query: query.trim(), domains, limit: 12 });
-        setResults(res?.results || []);
+        const res = await memoryApi.search({ query: query.trim(), domains, limit: 10 });
+        if (sequence.current === request) setResults(Array.isArray(res) ? res : res?.results || []);
       } catch (err) {
-        setError(err?.message || "Search failed.");
+        if (sequence.current === request) setError(err?.message || "Search failed.");
       } finally {
-        setLoading(false);
+        if (sequence.current === request) setLoading(false);
       }
     }, 300);
-    return () => clearTimeout(timer);
-  }, [query, selectedDomain]);
+    return () => { clearTimeout(timer); sequence.current++; };
+  }, [open, query, selectedDomain]);
 
   if (!open) return null;
 
@@ -68,7 +71,7 @@ export default function AiMemorySearchDialog({ open, onClose }) {
               <Sparkles size={20} />
             </span>
             <h2 id="ai-invest-search-title" style={{ fontSize: "1.125rem", fontWeight: 700 }}>
-              AI Vector Memory Search
+              Personal memory search
             </h2>
           </div>
           <button className="icon-button" type="button" onClick={onClose} aria-label="Close dialog">
@@ -119,7 +122,7 @@ export default function AiMemorySearchDialog({ open, onClose }) {
           {!query.trim() && (
             <div style={{ textAlign: "center", padding: "2.5rem 1rem", color: "var(--text-tertiary, #94a3b8)" }}>
               <Database size={32} style={{ margin: "0 auto 0.75rem", opacity: 0.5 }} />
-              <p style={{ fontWeight: 600, color: "var(--text-secondary, #475569)", marginBottom: "0.25rem" }}>Semantic Vector Search</p>
+              <p style={{ fontWeight: 600, color: "var(--text-secondary, #475569)", marginBottom: "0.25rem" }}>Personal memory search</p>
               <p style={{ fontSize: "0.8125rem", maxWidth: "26rem", margin: "0 auto" }}>
                 Search across all your financial records, investment research, and notes using natural language vector embeddings.
               </p>
@@ -132,11 +135,11 @@ export default function AiMemorySearchDialog({ open, onClose }) {
             </div>
           )}
 
-          {results.map((res) => {
-            const dateStr = res.entityDate || res.createdAt?.slice(0, 10);
+          {results.map((res, index) => {
+            const dateStr = res.occurredAt?.slice(0, 10) || res.entityDate || res.createdAt?.slice(0, 10);
             return (
               <div
-                key={res.id || `${res.domain}-${res.entityId}`}
+                key={res.id || `${res.sourceType}-${res.sourceId}`}
                 style={{
                   background: "var(--surface-2, #f8fafc)",
                   border: "1px solid var(--border-subtle, #e2e8f0)",
@@ -159,7 +162,7 @@ export default function AiMemorySearchDialog({ open, onClose }) {
                         color: "var(--text-primary, #0f172a)",
                       }}
                     >
-                      {res.domain}
+                      {res.sourceType}
                     </span>
                     {dateStr && (
                       <span style={{ fontSize: "0.75rem", color: "var(--text-tertiary, #94a3b8)", display: "flex", alignItems: "center", gap: 3 }}>
@@ -167,9 +170,9 @@ export default function AiMemorySearchDialog({ open, onClose }) {
                       </span>
                     )}
                   </div>
-                  {res.similarityScore != null && (
+                  {res.score != null && (
                     <span style={{ fontSize: "0.6875rem", color: "var(--text-tertiary, #94a3b8)", fontWeight: 600 }}>
-                      Match: {Math.round(res.similarityScore * 100)}%
+                      Relevance rank: {index + 1}
                     </span>
                   )}
                 </div>

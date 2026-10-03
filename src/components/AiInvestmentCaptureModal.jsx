@@ -45,7 +45,7 @@ export default function AiInvestmentCaptureModal({ open, onClose, onSuccess }) {
         sourceType: files.length > 0 ? "IMAGE" : "TEXT",
         captureDate: new Date().toISOString().slice(0, 10),
         metadata: {
-          targetDomain: "EXPENSE", // Classified or handled in ledger
+          targetDomain: "INVESTMENT",
           investmentHolding: true,
           autoOrganize: true,
         },

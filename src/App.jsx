@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { configureAccessTokenProvider } from "./api/client";
 import AppShell from "./components/AppShell";
@@ -27,6 +27,7 @@ function loginMessage(error) {
 }
 
 export default function App() {
+  const location = useLocation();
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState("");
@@ -113,6 +114,12 @@ export default function App() {
     }
   }
 
+  useEffect(() => {
+    const id = new URLSearchParams(location.search).get("holding");
+    const target = manager.holdings.find(holding => String(holding.id) === id);
+    if (target && manager.loaded) setForm({ open: true, holding: target, initialType: target.assetType });
+  }, [location.search, manager.loaded]);
+
   if (authLoading) {
     return <LoadingState />;
   }
@@ -139,7 +146,7 @@ export default function App() {
     >
       {content}
     </AppShell>
-    <DomainIntelligenceDialog open={intelligenceOpen} title="Investment intelligence" description="Review concentration, stale valuations and upcoming dates using only the values you entered—not live market data or trading advice." date={localDateKey()} load={investmentApi.analyze} refresh={investmentApi.refreshAnalysis} onClose={() => setIntelligenceOpen(false)} />
+    <DomainIntelligenceDialog revision={manager.holdings} open={intelligenceOpen} title="Investment intelligence" description="Review concentration, stale valuations and upcoming dates using only the values you entered—not live market data or trading advice." date={localDateKey()} load={investmentApi.analyze} refresh={investmentApi.refreshAnalysis} onClose={() => setIntelligenceOpen(false)} />
     <HoldingForm open={form.open} holding={form.holding} initialType={form.initialType} saving={manager.saving} onClose={closeForm} onSave={saveHolding} />
     <ConfirmDialog holding={pendingDelete} busy={manager.deleting} onCancel={() => setPendingDelete(null)} onConfirm={deleteHolding} />
     <AiInvestmentCaptureModal
